@@ -1,65 +1,127 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { customAlphabet } from "nanoid";
+import { supabase } from "@/lib/supabase";
+import { OCCASION_LABELS, type Occasion, type Theme } from "@/lib/types";
+import ThemePicker from "@/components/ThemePicker";
+
+const nanoid = customAlphabet(
+  "0123456789abcdefghijklmnopqrstuvwxyz",
+  10
+);
 
 export default function Home() {
+  const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [occasion, setOccasion] = useState<Occasion>("wedding");
+  const [theme, setTheme] = useState<Theme>("wedding");
+  const [eventDate, setEventDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) {
+      setError("タイトルを入力してください");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    const slug = nanoid();
+    const { error: insertError } = await supabase
+      .from("boards")
+      .insert({ slug, title, occasion, theme, event_date: eventDate || null })
+      .select()
+      .single();
+
+    setLoading(false);
+
+    if (insertError) {
+      setError("作成に失敗しました: " + insertError.message);
+      return;
+    }
+
+    router.push(`/board/${slug}`);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#f7f5f0] to-[#eeece4] px-6 py-16">
+      <div className="w-full max-w-xl">
+        <div className="mb-8 text-center">
+          <p className="text-xs tracking-[0.3em] text-[#a5824f] uppercase">
+            Yosegaki Gift
+          </p>
+          <h1 className="mt-2 text-3xl font-bold text-[#3a3227]">
+            寄せ書きギフトを作る
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 text-sm text-[#6b6355]">
+            URLを配って、みんなでひとつの贈り物に
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-6 rounded-2xl bg-white p-8 shadow-[0_8px_40px_rgba(60,50,30,0.08)]"
+        >
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#3a3227]">タイトル</span>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="例：田中先生ありがとうございました"
+              className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#3a3227]">シーン</span>
+            <select
+              value={occasion}
+              onChange={(e) => setOccasion(e.target.value as Occasion)}
+              className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
+            >
+              {Object.entries(OCCASION_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#3a3227]">日付（任意）</span>
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
+            />
+          </label>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#3a3227]">デザインテーマ</span>
+            <ThemePicker
+              value={theme}
+              occasion={occasion}
+              onChange={(t: Theme) => setTheme(t)}
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg bg-[#3a3227] px-4 py-3 font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {loading ? "作成中..." : "ボードを作る"}
+          </button>
+        </form>
+      </div>
+    </main>
   );
 }

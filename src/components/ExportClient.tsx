@@ -7,11 +7,12 @@ import { jsPDF } from "jspdf";
 import type { Board, Post } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import {
+  COUNTDOWN_PRICE,
   isFullyPaid,
   labelForTier,
-  priceForTier,
   requiredTier,
   startCheckout,
+  totalPrice,
 } from "@/lib/purchase";
 import ThemedBoard from "@/components/board-themes/ThemedBoard";
 import Watermark from "@/components/Watermark";
@@ -32,7 +33,8 @@ export default function ExportClient({
 
   const paid = isFullyPaid(board, posts.length);
   const tier = requiredTier(posts.length);
-  const price = priceForTier(tier);
+  const hasCountdown = !!board.reveal_at;
+  const price = totalPrice(tier, hasCountdown);
 
   async function exportPdf() {
     const node = captureRef.current;
@@ -191,18 +193,25 @@ export default function ExportClient({
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={handlePurchase}
-              disabled={busy !== "" || confirmingPayment}
-              className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
-            >
-              {confirmingPayment
-                ? "お支払いを確認中..."
-                : busy === "purchase"
-                  ? "移動中..."
-                  : `${labelForTier(tier)} ¥${price.toLocaleString()} を購入`}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                type="button"
+                onClick={handlePurchase}
+                disabled={busy !== "" || confirmingPayment}
+                className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
+              >
+                {confirmingPayment
+                  ? "お支払いを確認中..."
+                  : busy === "purchase"
+                    ? "移動中..."
+                    : `${labelForTier(tier)} ¥${price.toLocaleString()} を購入`}
+              </button>
+              {hasCountdown && (
+                <span className="text-xs text-[#6b6355]">
+                  カウントダウン公開 +¥{COUNTDOWN_PRICE} 込み
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

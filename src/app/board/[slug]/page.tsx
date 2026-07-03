@@ -5,6 +5,7 @@ import type { Board, Post } from "@/lib/types";
 import { isFullyPaid } from "@/lib/purchase";
 import ThemedBoard from "@/components/board-themes/ThemedBoard";
 import Watermark from "@/components/Watermark";
+import CountdownScreen from "@/components/CountdownScreen";
 
 export default async function BoardPage({
   params,
@@ -31,6 +32,10 @@ export default async function BoardPage({
     .returns<Post[]>();
 
   const paid = isFullyPaid(board, posts?.length ?? 0);
+
+  if (board.reveal_at && new Date(board.reveal_at) > new Date()) {
+    return <CountdownScreen board={board} />;
+  }
 
   return (
     <div className="relative">

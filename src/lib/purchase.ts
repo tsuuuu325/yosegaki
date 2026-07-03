@@ -27,8 +27,16 @@ const TIER_LABEL: Record<PaidTier, string> = {
   milestone: "マイルストーンプラン（無制限）",
 };
 
+// カウントダウン公開（公開日時になるまで内容を隠す）の追加料金
+export const COUNTDOWN_PRICE = 200;
+
 export function priceForTier(tier: PaidTier): number {
   return TIER_PRICE[tier];
+}
+
+// プラン料金＋（カウントダウン公開を使う場合）追加料金の合計
+export function totalPrice(tier: PaidTier, hasCountdown: boolean): number {
+  return priceForTier(tier) + (hasCountdown ? COUNTDOWN_PRICE : 0);
 }
 
 export function labelForTier(tier: PaidTier): string {

@@ -59,6 +59,7 @@ export type Board = {
   event_date: string | null;
   is_paid: boolean;
   paid_tier: PaidTier | null;
+  reveal_at: string | null;
   created_at: string;
 };
 

@@ -23,6 +23,7 @@ export function sampleBoard(theme: Theme, occasion: Occasion = "wedding"): Board
     event_date: "2026-06-20",
     is_paid: false,
     paid_tier: null,
+    reveal_at: null,
     created_at: new Date().toISOString(),
   };
 }

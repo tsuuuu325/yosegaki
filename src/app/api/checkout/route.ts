@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
-import { priceForTier, labelForTier, requiredTier } from "@/lib/purchase";
+import { COUNTDOWN_PRICE, priceForTier, labelForTier, requiredTier } from "@/lib/purchase";
 import type { PaidTier } from "@/lib/types";
 
 // 決済ページ（Stripe Checkout）のURLを発行するAPI。
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   const { data: board, error: boardError } = await supabase
     .from("boards")
-    .select("id, slug, title")
+    .select("id, slug, title, reveal_at")
     .eq("id", boardId)
     .single();
 
@@ -33,22 +33,37 @@ export async function POST(request: Request) {
 
   const tier: PaidTier = requiredTier(count ?? 0);
   const price = priceForTier(tier);
+  const hasCountdown = !!board.reveal_at;
+
+  const lineItems = [
+    {
+      price_data: {
+        currency: "jpy",
+        unit_amount: price,
+        product_data: {
+          name: `${board.title}（${labelForTier(tier)}）`,
+        },
+      },
+      quantity: 1,
+    },
+  ];
+  if (hasCountdown) {
+    lineItems.push({
+      price_data: {
+        currency: "jpy",
+        unit_amount: COUNTDOWN_PRICE,
+        product_data: {
+          name: "カウントダウン公開オプション",
+        },
+      },
+      quantity: 1,
+    });
+  }
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "jpy",
-          unit_amount: price,
-          product_data: {
-            name: `${board.title}（${labelForTier(tier)}）`,
-          },
-        },
-        quantity: 1,
-      },
-    ],
+    line_items: lineItems,
     metadata: {
       boardId: board.id,
       tier,

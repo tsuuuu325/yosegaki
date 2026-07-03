@@ -1,4 +1,3 @@
-import { supabase } from "./supabase";
 import type { Board, PaidTier } from "./types";
 
 // ===== 料金・人数のルール（Kudoboardの料金体系に合わせてある） =====
@@ -54,16 +53,22 @@ export function isFullyPaid(board: Board, postCount: number): boolean {
 }
 
 // ===== 購入処理 =====
-// ※現在は仮実装：ボタンを押すとすぐ購入済みになる。
-//   リリース時はこの関数の中身だけをStripe決済（チェックアウト→Webhookで
-//   paid_tier更新）に差し替える。呼び出し側は変更不要。
-export async function purchaseBoard(
-  boardId: string,
-  tier: PaidTier
-): Promise<{ error?: string }> {
-  const { error } = await supabase
-    .from("boards")
-    .update({ paid_tier: tier, is_paid: true })
-    .eq("id", boardId);
-  return error ? { error: error.message } : {};
+// Stripeの決済ページを発行し、そのURLへ移動する。
+// 実際に「支払い済み」としてDBを更新するのは、支払い完了後にStripeから
+// 届くwebhook（src/app/api/webhooks/stripe/route.ts）だけが行う。
+export async function startCheckout(boardId: string): Promise<{ error?: string }> {
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ boardId, origin: window.location.origin }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    return { error: data.error ?? "決済ページの作成に失敗しました" };
+  }
+
+  const { url } = (await res.json()) as { url: string };
+  window.location.href = url;
+  return {};
 }

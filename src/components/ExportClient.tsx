@@ -1,16 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import type { Board, Post } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 import {
   isFullyPaid,
   labelForTier,
   priceForTier,
-  purchaseBoard,
   requiredTier,
+  startCheckout,
 } from "@/lib/purchase";
 import ThemedBoard from "@/components/board-themes/ThemedBoard";
 import Watermark from "@/components/Watermark";
@@ -26,6 +27,7 @@ export default function ExportClient({
   const captureRef = useRef<HTMLDivElement>(null);
   const [board, setBoard] = useState(initialBoard);
   const [busy, setBusy] = useState<"" | "pdf" | "html" | "purchase">("");
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [error, setError] = useState("");
 
   const paid = isFullyPaid(board, posts.length);
@@ -90,26 +92,59 @@ export default function ExportClient({
   }
 
   async function handlePurchase() {
-    const ok = window.confirm(
-      `${labelForTier(tier)} ¥${price.toLocaleString()} を購入しますか？\n※現在はテスト中のため、実際のお支払いは発生しません。`
-    );
-    if (!ok) return;
     setBusy("purchase");
     setError("");
-    const { error: purchaseError } = await purchaseBoard(board.id, tier);
-    setBusy("");
-    if (purchaseError) {
-      setError("購入処理に失敗しました: " + purchaseError);
-      return;
+    const { error: checkoutError } = await startCheckout(board.id);
+    if (checkoutError) {
+      setBusy("");
+      setError("決済ページへの移動に失敗しました: " + checkoutError);
     }
-    setBoard({ ...board, paid_tier: tier, is_paid: true });
-    // 透かしが消えた状態が画面に反映される（再描画・再ペイント）のを待ってから
-    // 「動きも残せるファイル」を自動で作る（PDFは必要な人が別途ボタンを押す）
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-    );
-    await exportHtmlFile();
+    // 成功時はここでStripeの決済ページに移動するので、busyの解除は不要
   }
+
+  // Stripeの決済ページから戻ってきたら、支払いの反映を少し待ってから
+  // 自動でHTMLファイルを作る（webhookの処理がわずかに遅れることがあるため）
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") !== "success") return;
+
+    window.history.replaceState({}, "", window.location.pathname);
+    let cancelled = false;
+
+    async function waitForPayment() {
+      setConfirmingPayment(true);
+      for (let i = 0; i < 15; i++) {
+        const { data } = await supabase
+          .from("boards")
+          .select("*")
+          .eq("id", initialBoard.id)
+          .single<Board>();
+        if (cancelled) return;
+        if (data && isFullyPaid(data, posts.length)) {
+          setBoard(data);
+          setConfirmingPayment(false);
+          await new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+          );
+          await exportHtmlFile();
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      if (!cancelled) {
+        setConfirmingPayment(false);
+        setError(
+          "お支払いの確認に時間がかかっています。少し待ってからページを更新してください。"
+        );
+      }
+    }
+
+    waitForPayment();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#efece5]">
@@ -159,12 +194,14 @@ export default function ExportClient({
             <button
               type="button"
               onClick={handlePurchase}
-              disabled={busy !== ""}
+              disabled={busy !== "" || confirmingPayment}
               className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
             >
-              {busy === "purchase" || busy === "pdf"
-                ? "処理中..."
-                : `透かしを消してPDFを保存 ¥${price.toLocaleString()}`}
+              {confirmingPayment
+                ? "お支払いを確認中..."
+                : busy === "purchase"
+                  ? "移動中..."
+                  : `${labelForTier(tier)} ¥${price.toLocaleString()} を購入`}
             </button>
           )}
         </div>

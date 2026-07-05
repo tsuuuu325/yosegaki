@@ -172,21 +172,36 @@ export default function JapandiBoard({
                   />
                 )}
                 <div
-                  className={shipporiMincho.className}
-                  style={{
-                    writingMode: "vertical-rl",
-                    height: "260px",
-                    color: INK,
-                    fontSize: "14px",
-                    lineHeight: 2.1,
-                    letterSpacing: "0.12em",
-                    padding: "0 14px",
-                  }}
+                  className="flex items-start"
+                  style={{ direction: "rtl", minHeight: "200px" }}
                 >
-                  <p style={{ whiteSpace: "pre-wrap" }}>{post.message}</p>
-                  <p style={{ marginTop: "auto", fontSize: "13px", opacity: 0.8 }}>
+                  <div
+                    className={shipporiMincho.className}
+                    style={{
+                      writingMode: "vertical-rl",
+                      color: INK,
+                      fontSize: "14px",
+                      lineHeight: 2.1,
+                      letterSpacing: "0.12em",
+                      padding: "0 10px",
+                    }}
+                  >
+                    <p style={{ whiteSpace: "pre-wrap" }}>{post.message}</p>
+                  </div>
+                  <div
+                    className={shipporiMincho.className}
+                    style={{
+                      writingMode: "vertical-rl",
+                      color: INK,
+                      opacity: 0.8,
+                      fontSize: "13px",
+                      letterSpacing: "0.12em",
+                      padding: "0 6px",
+                      flexShrink: 0,
+                    }}
+                  >
                     {post.author_name}
-                  </p>
+                  </div>
                 </div>
                 <Seal char={post.author_name.trim().charAt(0) || "印"} size={24} />
               </article>

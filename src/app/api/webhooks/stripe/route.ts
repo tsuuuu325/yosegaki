@@ -32,11 +32,12 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const boardId = session.metadata?.boardId;
     const tier = session.metadata?.tier as PaidTier | undefined;
+    const revealAt = session.metadata?.revealAt || null;
 
     if (boardId && tier) {
       await supabaseAdmin
         .from("boards")
-        .update({ paid_tier: tier, is_paid: true })
+        .update({ paid_tier: tier, is_paid: true, reveal_at: revealAt })
         .eq("id", boardId);
     }
   }

@@ -64,11 +64,14 @@ export function isFullyPaid(board: Board, postCount: number): boolean {
 // Stripeの決済ページを発行し、そのURLへ移動する。
 // 実際に「支払い済み」としてDBを更新するのは、支払い完了後にStripeから
 // 届くwebhook（src/app/api/webhooks/stripe/route.ts）だけが行う。
-export async function startCheckout(boardId: string): Promise<{ error?: string }> {
+export async function startCheckout(
+  boardId: string,
+  revealAt?: string | null
+): Promise<{ error?: string }> {
   const res = await fetch("/api/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ boardId, origin: window.location.origin }),
+    body: JSON.stringify({ boardId, origin: window.location.origin, revealAt }),
   });
 
   if (!res.ok) {

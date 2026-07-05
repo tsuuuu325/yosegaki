@@ -30,10 +30,12 @@ export default function ExportClient({
   const [busy, setBusy] = useState<"" | "pdf" | "html" | "purchase">("");
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [error, setError] = useState("");
+  const [wantsCountdown, setWantsCountdown] = useState(false);
+  const [revealAtInput, setRevealAtInput] = useState("");
 
   const paid = isFullyPaid(board, posts.length);
   const tier = requiredTier(posts.length);
-  const hasCountdown = !!board.reveal_at;
+  const hasCountdown = paid ? !!board.reveal_at : wantsCountdown;
   const price = totalPrice(tier, hasCountdown);
 
   async function exportPdf() {
@@ -94,9 +96,16 @@ export default function ExportClient({
   }
 
   async function handlePurchase() {
+    if (wantsCountdown && !revealAtInput) {
+      setError("カウントダウン公開にする場合は、公開日時を指定してください");
+      return;
+    }
     setBusy("purchase");
     setError("");
-    const { error: checkoutError } = await startCheckout(board.id);
+    const { error: checkoutError } = await startCheckout(
+      board.id,
+      wantsCountdown && revealAtInput ? new Date(revealAtInput).toISOString() : null
+    );
     if (checkoutError) {
       setBusy("");
       setError("決済ページへの移動に失敗しました: " + checkoutError);
@@ -172,52 +181,73 @@ export default function ExportClient({
             )}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {paid ? (
-            <>
-              <button
-                type="button"
-                onClick={exportHtmlFile}
-                disabled={busy !== ""}
-                className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
-              >
-                {busy === "html" ? "作成中..." : "HTMLで保存"}
-              </button>
-              <button
-                type="button"
-                onClick={exportPdf}
-                disabled={busy !== ""}
-                className="rounded-lg border border-[#3a3227] px-4 py-2 text-sm font-medium text-[#3a3227] transition-colors hover:bg-[#f2efe8] disabled:opacity-50"
-              >
-                {busy === "pdf" ? "作成中..." : "PDFでも保存"}
-              </button>
-            </>
-          ) : (
-            <div className="flex flex-col items-end gap-1">
-              <button
-                type="button"
-                onClick={handlePurchase}
-                disabled={busy !== "" || confirmingPayment}
-                className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
-              >
-                {confirmingPayment
-                  ? "お支払いを確認中..."
-                  : busy === "purchase"
-                    ? "移動中..."
-                    : `${labelForTier(tier)} ¥${price.toLocaleString()} を購入`}
-              </button>
-              {hasCountdown && (
-                <span className="text-xs text-[#6b6355]">
-                  カウントダウン公開 +¥{COUNTDOWN_PRICE} 込み
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+        {paid && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={exportHtmlFile}
+              disabled={busy !== ""}
+              className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
+            >
+              {busy === "html" ? "作成中..." : "HTMLで保存"}
+            </button>
+            <button
+              type="button"
+              onClick={exportPdf}
+              disabled={busy !== ""}
+              className="rounded-lg border border-[#3a3227] px-4 py-2 text-sm font-medium text-[#3a3227] transition-colors hover:bg-[#f2efe8] disabled:opacity-50"
+            >
+              {busy === "pdf" ? "作成中..." : "PDFでも保存"}
+            </button>
+          </div>
+        )}
       </div>
 
+      {!paid && (
+        <div className="mx-auto mt-4 flex max-w-md flex-col gap-3 rounded-lg border border-[#e2ddd1] bg-white p-4">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={wantsCountdown}
+              onChange={(e) => setWantsCountdown(e.target.checked)}
+              disabled={busy !== "" || confirmingPayment}
+            />
+            <span className="text-sm font-medium text-[#3a3227]">
+              カウントダウン公開にする（+¥{COUNTDOWN_PRICE}）
+            </span>
+          </label>
+          <p className="text-xs text-[#6b6355]">
+            指定した日時になるまで、ボードの中身は誰にも見えなくなります（招待リンクはそのまま使えます）。
+          </p>
+          {wantsCountdown && (
+            <input
+              type="datetime-local"
+              value={revealAtInput}
+              onChange={(e) => setRevealAtInput(e.target.value)}
+              disabled={busy !== "" || confirmingPayment}
+              className="rounded-lg border border-[#e2ddd1] px-3 py-2 outline-none focus:border-[#a5824f]"
+            />
+          )}
+
+          <button
+            type="button"
+            onClick={handlePurchase}
+            disabled={busy !== "" || confirmingPayment}
+            className="rounded-lg bg-[#3a3227] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
+          >
+            {confirmingPayment
+              ? "お支払いを確認中..."
+              : busy === "purchase"
+                ? "移動中..."
+                : `${labelForTier(tier)} ¥${price.toLocaleString()} を購入`}
+          </button>
+        </div>
+      )}
+
       {error && (
-        <p className="bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        <p className="mx-auto mt-3 max-w-md bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </p>
       )}
 
       {/* 書き出し対象（この枠の中がそのままPDFになる） */}

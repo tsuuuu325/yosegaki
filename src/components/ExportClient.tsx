@@ -170,13 +170,9 @@ export default function ExportClient({
           </Link>
           <p className="text-sm text-[#6b6355]">
             {posts.length}人のメッセージ
-            {paid ? (
+            {paid && (
               <span className="ml-2 rounded-full bg-[#3a7d44] px-2 py-0.5 text-xs font-medium text-white">
                 購入済み
-              </span>
-            ) : (
-              <span className="ml-2 rounded-full bg-[#a5824f] px-2 py-0.5 text-xs font-medium text-white">
-                無料版（透かし入り）
               </span>
             )}
           </p>

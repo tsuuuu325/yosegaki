@@ -37,15 +37,29 @@ export const OCCASION_LABELS: Record<Occasion, string> = {
 };
 
 export const THEME_LABELS: Record<Theme, string> = {
-  wedding: "Wedding（上品）",
-  farewell: "Farewell（落ち着き）",
-  team: "Team（躍動）",
-  birthday: "Birthday（華やか）",
-  classicMono: "Classic（モノクロ）",
-  naturalBotanical: "Botanical（自然）",
-  popNeon: "Neon Pop（にぎやか）",
-  japandi: "Japandi（和モダン）",
+  wedding: "Wedding",
+  farewell: "Farewell",
+  team: "Team",
+  birthday: "Birthday",
+  classicMono: "Classic",
+  naturalBotanical: "Botanical",
+  popNeon: "Neon Pop",
+  japandi: "Japandi",
 };
+
+// ギフト（ボード）の表示言語。英語をデフォルトとする。
+export type Language = "en" | "ja" | "zh" | "ko" | "es" | "fr" | "de" | "pt";
+
+export const LANGUAGES: { code: Language; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "ja", label: "日本語" },
+  { code: "zh", label: "中文" },
+  { code: "ko", label: "한국어" },
+  { code: "es", label: "Español" },
+  { code: "fr", label: "Français" },
+  { code: "de", label: "Deutsch" },
+  { code: "pt", label: "Português" },
+];
 
 // Kudoboardの料金体系（Lite/Premium/Milestone）に合わせた3段階プラン
 export type PaidTier = "lite" | "premium" | "milestone";
@@ -61,6 +75,7 @@ export type Board = {
   paid_tier: PaidTier | null;
   reveal_at: string | null;
   organizer_email: string | null;
+  language: Language;
   created_at: string;
 };
 

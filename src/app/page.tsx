@@ -5,9 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { customAlphabet } from "nanoid";
 import { supabase } from "@/lib/supabase";
-import { OCCASION_LABELS, type Occasion, type Theme } from "@/lib/types";
+import { LANGUAGES, type Language, type Occasion, type Theme } from "@/lib/types";
 import { addMyBoard, getMyBoards, type SavedBoard } from "@/lib/myBoards";
 import ThemePicker from "@/components/ThemePicker";
+
+const OCCASION_LABELS_EN: Record<Occasion, string> = {
+  wedding: "Wedding",
+  farewell: "Farewell",
+  graduation: "Graduation",
+  birthday: "Birthday",
+  retirement: "Retirement",
+  other: "Other",
+};
 
 const nanoid = customAlphabet(
   "0123456789abcdefghijklmnopqrstuvwxyz",
@@ -21,6 +30,7 @@ export default function Home() {
   const [theme, setTheme] = useState<Theme>("wedding");
   const [eventDate, setEventDate] = useState("");
   const [email, setEmail] = useState("");
+  const [language, setLanguage] = useState<Language>("en");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,7 +51,11 @@ export default function Home() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
-      setError("タイトルを入力してください");
+      setError("Please enter a title");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Please enter your email address");
       return;
     }
     setLoading(true);
@@ -55,15 +69,16 @@ export default function Home() {
         title,
         occasion,
         theme,
+        language,
         event_date: eventDate || null,
-        organizer_email: email.trim() || null,
+        organizer_email: email.trim(),
       })
       .select()
       .single();
 
     if (insertError) {
       setLoading(false);
-      setError("作成に失敗しました: " + insertError.message);
+      setError("Could not create the board: " + insertError.message);
       return;
     }
 
@@ -92,17 +107,17 @@ export default function Home() {
             Yosegaki Gift
           </p>
           <h1 className="mt-2 text-3xl font-bold text-[#3a3227]">
-            寄せ書きギフトを作る
+            Create a group card
           </h1>
           <p className="mt-2 text-sm text-[#6b6355]">
-            URLを配って、みんなでひとつの贈り物に
+            Share one link and gather everyone&apos;s messages into a single gift
           </p>
         </div>
 
         {myBoards.length > 0 && (
           <div className="mb-6 rounded-2xl bg-white/70 p-5">
             <p className="mb-3 text-sm font-medium text-[#3a3227]">
-              この端末で作ったボード
+              Boards created on this device
             </p>
             <ul className="flex flex-col gap-2">
               {myBoards.map((b) => (
@@ -112,7 +127,7 @@ export default function Home() {
                     className="flex items-center justify-between rounded-lg border border-[#e2ddd1] bg-white px-3 py-2 text-sm text-[#3a3227] hover:border-[#a5824f]"
                   >
                     <span className="truncate">{b.title}</span>
-                    <span className="ml-2 shrink-0 text-xs text-[#a5824f]">開く →</span>
+                    <span className="ml-2 shrink-0 text-xs text-[#a5824f]">Open →</span>
                   </Link>
                 </li>
               ))}
@@ -125,24 +140,24 @@ export default function Home() {
           className="flex flex-col gap-6 rounded-2xl bg-white p-8 shadow-[0_8px_40px_rgba(60,50,30,0.08)]"
         >
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#3a3227]">タイトル</span>
+            <span className="text-sm font-medium text-[#3a3227]">Title</span>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="例：田中先生ありがとうございました"
+              placeholder="e.g. Thank you, Mr. Tanaka"
               className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
             />
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#3a3227]">シーン</span>
+            <span className="text-sm font-medium text-[#3a3227]">Occasion</span>
             <select
               value={occasion}
               onChange={(e) => setOccasion(e.target.value as Occasion)}
               className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
             >
-              {Object.entries(OCCASION_LABELS).map(([value, label]) => (
+              {Object.entries(OCCASION_LABELS_EN).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
                 </option>
@@ -151,7 +166,27 @@ export default function Home() {
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#3a3227]">日付（任意）</span>
+            <span className="text-sm font-medium text-[#3a3227]">
+              Card language
+            </span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-[#6b6355]">
+              The card and the message form will be shown to everyone in this language.
+            </span>
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-[#3a3227]">Date (optional)</span>
             <input
               type="date"
               value={eventDate}
@@ -161,23 +196,19 @@ export default function Home() {
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#3a3227]">
-              メールアドレス（任意）
-            </span>
+            <span className="text-sm font-medium text-[#3a3227]">Email</span>
             <input
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="別の端末からもボードを探せるようにする"
+              placeholder="you@example.com"
               className="rounded-lg border border-[#e2ddd1] px-3 py-2.5 outline-none focus:border-[#a5824f]"
             />
-            <span className="text-xs text-[#6b6355]">
-              登録しておくと、スマホとPCなど別の端末からでもボードに戻れます（認証は不要です）。
-            </span>
           </label>
 
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-[#3a3227]">デザインテーマ</span>
+            <span className="text-sm font-medium text-[#3a3227]">Design theme</span>
             <ThemePicker
               value={theme}
               occasion={occasion}
@@ -192,7 +223,7 @@ export default function Home() {
             disabled={loading}
             className="rounded-lg bg-[#3a3227] px-4 py-3 font-medium text-white transition-colors hover:bg-[#2a2419] disabled:opacity-50"
           >
-            {loading ? "作成中..." : "ボードを作る"}
+            {loading ? "Creating..." : "Create board"}
           </button>
         </form>
 
@@ -202,7 +233,7 @@ export default function Home() {
             onClick={() => setRecoverOpen((v) => !v)}
             className="text-sm text-[#6b6355] underline"
           >
-            別の端末で作ったボードを探す
+            Find boards created on another device
           </button>
           {recoverOpen && (
             <form
@@ -210,7 +241,7 @@ export default function Home() {
               className="mt-3 flex flex-col gap-3 rounded-2xl bg-white/70 p-5 text-left"
             >
               <p className="text-xs text-[#6b6355]">
-                作成時に登録したメールアドレスを入力してください。
+                Enter the email address you used when creating the board.
               </p>
               <div className="flex gap-2">
                 <input
@@ -225,12 +256,12 @@ export default function Home() {
                   disabled={recoverBusy}
                   className="shrink-0 rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                 >
-                  {recoverBusy ? "検索中..." : "探す"}
+                  {recoverBusy ? "Searching..." : "Search"}
                 </button>
               </div>
               {recoverResults && recoverResults.length === 0 && (
                 <p className="text-sm text-[#6b6355]">
-                  そのメールアドレスで作られたボードは見つかりませんでした。
+                  No boards were found for that email address.
                 </p>
               )}
               {recoverResults && recoverResults.length > 0 && (
@@ -242,7 +273,7 @@ export default function Home() {
                         className="flex items-center justify-between rounded-lg border border-[#e2ddd1] bg-white px-3 py-2 text-sm text-[#3a3227] hover:border-[#a5824f]"
                       >
                         <span className="truncate">{b.title}</span>
-                        <span className="ml-2 shrink-0 text-xs text-[#a5824f]">開く →</span>
+                        <span className="ml-2 shrink-0 text-xs text-[#a5824f]">Open →</span>
                       </Link>
                     </li>
                   ))}

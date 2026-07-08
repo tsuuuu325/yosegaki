@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, footerFor, ui } from "@/lib/i18n";
 
 const BG = "#F1EDE2";
 const CARD = "#FBF9F1";
@@ -20,24 +21,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "A Year in Bloom",
   retirement: "Seasons of Dedication",
   other: "Collected Words",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "おふたりの門出に 花束を",
-  farewell: "感謝のことばを 押し花にして",
-  graduation: "育った日々の 記録",
-  birthday: "あなたの一年が 花ひらきますように",
-  retirement: "積み重ねた季節に 敬意を",
-  other: "集めたことばの 標本帳",
-};
-
-const FOOTER_LABEL: Record<Occasion, (n: number) => string> = {
-  wedding: (n) => `${n}輪のことばを 採集しました`,
-  farewell: (n) => `${n}輪の感謝を 採集しました`,
-  graduation: (n) => `${n}輪のことばを 採集しました`,
-  birthday: (n) => `${n}輪のことばを 採集しました`,
-  retirement: (n) => `${n}輪の感謝を 採集しました`,
-  other: (n) => `${n}輪のことばを 採集しました`,
 };
 
 function formatDate(value: string | null) {
@@ -75,7 +58,8 @@ export default function BotanicalBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -102,7 +86,7 @@ export default function BotanicalBoard({
             className={`${kleeOne.className} text-sm sm:text-base`}
             style={{ color: INK, opacity: 0.75, letterSpacing: "0.15em" }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
           {dateLabel && (
             <p
@@ -116,13 +100,13 @@ export default function BotanicalBoard({
 
         {!preview && (
           <div className="mx-auto mb-16 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${kleeOne.className} rounded px-5 py-3 text-center text-sm tracking-widest transition-opacity hover:opacity-85`}
               style={{ backgroundColor: GREEN, color: CARD }}
             >
-              ことばを添える
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -130,7 +114,7 @@ export default function BotanicalBoard({
 
         {posts.length === 0 && (
           <p className={`${kleeOne.className} text-center`} style={{ color: INK, opacity: 0.6 }}>
-            まだことばが集まっていません。最初の一輪をお寄せください。
+            {t.emptyBoard}
           </p>
         )}
 
@@ -216,7 +200,7 @@ export default function BotanicalBoard({
               className={kleeOne.className}
               style={{ color: INK, opacity: 0.7, letterSpacing: "0.2em", fontSize: "14px" }}
             >
-              {FOOTER_LABEL[board.occasion](posts.length)}
+              {footerFor(board.language, board.occasion, posts.length)}
             </p>
           </footer>
         )}

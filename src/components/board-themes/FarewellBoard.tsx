@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, footerFor, ui } from "@/lib/i18n";
 
 const NAVY = "#1E2A3A";
 const PAPER = "#F3ECDD";
@@ -20,15 +21,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "MANY HAPPY RETURNS",
   retirement: "WITH DEEP GRATITUDE",
   other: "FROM ALL OF US",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "おめでとう",
-  farewell: "これまで ありがとう",
-  graduation: "あたらしい 門出に",
-  birthday: "おめでとう",
-  retirement: "長い間 おつかれさま",
-  other: "こころを こめて",
 };
 
 const titleFontFamily = `${cormorantGaramond.style.fontFamily}, ${shipporiMincho.style.fontFamily}`;
@@ -74,7 +66,8 @@ export default function FarewellBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -97,7 +90,7 @@ export default function FarewellBoard({
             className={`${shipporiMincho.className} text-base sm:text-lg`}
             style={{ color: PAPER, letterSpacing: "0.5em", textIndent: "0.5em", opacity: 0.9 }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
 
           <div className="mt-5 flex items-center gap-4">
@@ -118,13 +111,13 @@ export default function FarewellBoard({
 
         {!preview && (
           <div className="mx-auto mb-16 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${shipporiMincho.className} rounded px-5 py-3 text-center text-sm tracking-widest transition-colors`}
               style={{ backgroundColor: GOLD, color: NAVY }}
             >
-              メッセージを贈る
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -135,7 +128,7 @@ export default function FarewellBoard({
             className={`${shipporiMincho.className} text-center`}
             style={{ color: PAPER, opacity: 0.7 }}
           >
-            まだお手紙が届いておりません。最初の一通をお寄せください。
+            {t.emptyBoard}
           </p>
         )}
 
@@ -200,7 +193,7 @@ export default function FarewellBoard({
               className={shipporiMincho.className}
               style={{ color: GOLD, letterSpacing: "0.3em", textIndent: "0.3em" }}
             >
-              {posts.length}通のお手紙
+              {footerFor(board.language, board.occasion, posts.length)}
             </p>
           </footer>
         )}

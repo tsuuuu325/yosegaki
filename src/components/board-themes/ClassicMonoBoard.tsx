@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, ui } from "@/lib/i18n";
 
 const BG = "#FCFBF7";
 const CARD = "#FFFFFF";
@@ -18,15 +19,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "THE BIRTHDAY POST",
   retirement: "THE TRIBUTE TIMES",
   other: "THE MESSAGE PRESS",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "祝 ご結婚",
-  farewell: "感謝を込めて",
-  graduation: "祝 ご卒業",
-  birthday: "祝 お誕生日",
-  retirement: "祝 ご退職",
-  other: "寄せ書き特別号",
 };
 
 const FOOTER_LABEL: Record<Occasion, (n: number) => string> = {
@@ -65,7 +57,8 @@ export default function ClassicMonoBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -93,7 +86,7 @@ export default function ClassicMonoBoard({
                 className={shipporiMincho.className}
                 style={{ color: INK, letterSpacing: "0.4em", textIndent: "0.4em", fontSize: "14px" }}
               >
-                {jpSubtitle}
+                {subtitle}
               </p>
               <span className="h-px w-12" style={{ backgroundColor: INK }} />
             </div>
@@ -111,13 +104,13 @@ export default function ClassicMonoBoard({
 
         {!preview && (
           <div className="mx-auto mb-14 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${shipporiMincho.className} px-5 py-3 text-center text-sm tracking-[0.3em] transition-opacity hover:opacity-80`}
               style={{ backgroundColor: INK, color: BG }}
             >
-              寄稿する
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -128,7 +121,7 @@ export default function ClassicMonoBoard({
             className={`${shipporiMincho.className} text-center`}
             style={{ color: INK, opacity: 0.6 }}
           >
-            まだ記事がありません。最初の一報をお寄せください。
+            {t.emptyBoard}
           </p>
         )}
 

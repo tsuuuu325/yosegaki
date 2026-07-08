@@ -3,20 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import type { Theme } from "@/lib/types";
+import type { Language, Theme } from "@/lib/types";
 import { THEME_STYLES } from "@/lib/themeStyles";
 import { MAX_POSTS } from "@/lib/purchase";
+import { ui } from "@/lib/i18n";
 
 export default function PostForm({
   boardId,
   boardSlug,
   theme = "wedding",
+  language = "en",
 }: {
   boardId: string;
   boardSlug: string;
   theme?: Theme;
+  language?: Language;
 }) {
   const s = THEME_STYLES[theme];
+  const t = ui(language);
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -37,9 +41,7 @@ export default function PostForm({
     const maxBytes = (isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB) * 1024 * 1024;
     if (file.size > maxBytes) {
       setError(
-        `${isVideo ? "動画" : "写真"}のサイズが大きすぎます（上限${
-          isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB
-        }MB）`
+        `${t.uploadFailed} (max ${isVideo ? MAX_VIDEO_MB : MAX_IMAGE_MB}MB)`
       );
       setMediaFile(null);
       return;
@@ -50,7 +52,7 @@ export default function PostForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!authorName.trim() || !message.trim()) {
-      setError("お名前とメッセージをご入力ください");
+      setError(t.validation);
       return;
     }
     setLoading(true);
@@ -63,7 +65,7 @@ export default function PostForm({
       .eq("board_id", boardId);
     if ((count ?? 0) >= MAX_POSTS) {
       setLoading(false);
-      setError(`このボードは投稿の上限（${MAX_POSTS}件）に達しています。`);
+      setError(`This board has reached its limit of ${MAX_POSTS} messages.`);
       return;
     }
 
@@ -78,10 +80,7 @@ export default function PostForm({
 
       if (uploadError) {
         setLoading(false);
-        setError(
-          `${mediaFile.type.startsWith("video/") ? "動画" : "画像"}のアップロードに失敗しました: ` +
-            uploadError.message
-        );
+        setError(t.uploadFailed + ": " + uploadError.message);
         return;
       }
 
@@ -101,7 +100,7 @@ export default function PostForm({
     setLoading(false);
 
     if (insertError) {
-      setError("投稿に失敗しました: " + insertError.message);
+      setError(t.postFailed + ": " + insertError.message);
       return;
     }
 
@@ -111,10 +110,10 @@ export default function PostForm({
   if (done) {
     return (
       <div className={`flex flex-col items-center gap-4 rounded p-10 text-center ${s.card}`}>
-        <p className={`text-2xl ${s.cardName}`}>ありがとうございました！</p>
-        <p className={`opacity-80 ${s.cardText}`}>メッセージを送りました。</p>
+        <p className={`text-2xl ${s.cardName}`}>{t.thankYouTitle}</p>
+        <p className={`opacity-80 ${s.cardText}`}>{t.thankYouBody}</p>
         <Link href={`/board/${boardSlug}`} className={`mt-2 text-sm underline ${s.cardText}`}>
-          ボードを見る
+          {t.seeBoard}
         </Link>
       </div>
     );
@@ -123,7 +122,7 @@ export default function PostForm({
   return (
     <form onSubmit={handleSubmit} className={`flex flex-col gap-5 rounded p-6 ${s.card}`}>
       <label className="flex flex-col gap-1">
-        <span className={`text-sm font-medium ${s.cardText}`}>お名前</span>
+        <span className={`text-sm font-medium ${s.cardText}`}>{t.nameLabel}</span>
         <input
           type="text"
           value={authorName}
@@ -133,7 +132,7 @@ export default function PostForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className={`text-sm font-medium ${s.cardText}`}>メッセージ</span>
+        <span className={`text-sm font-medium ${s.cardText}`}>{t.messageLabel}</span>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -143,18 +142,14 @@ export default function PostForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className={`text-sm font-medium ${s.cardText}`}>
-          写真・動画（任意、音声付きもOK）
-        </span>
+        <span className={`text-sm font-medium ${s.cardText}`}>{t.mediaLabel}</span>
         <input
           type="file"
           accept="image/*,video/*"
           onChange={(e) => handleMediaChange(e.target.files?.[0] ?? null)}
           className={s.cardText}
         />
-        <span className={`text-xs opacity-60 ${s.cardText}`}>
-          写真は{MAX_IMAGE_MB}MBまで、動画は{MAX_VIDEO_MB}MBまで
-        </span>
+        <span className={`text-xs opacity-60 ${s.cardText}`}>{t.mediaNote}</span>
       </label>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
@@ -164,7 +159,7 @@ export default function PostForm({
         disabled={loading}
         className={`rounded px-4 py-3 font-medium transition-colors disabled:opacity-50 ${s.accentButton}`}
       >
-        {loading ? "送信中..." : "メッセージを贈る"}
+        {loading ? t.sending : t.send}
       </button>
     </form>
   );

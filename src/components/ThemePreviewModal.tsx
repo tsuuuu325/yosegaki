@@ -38,10 +38,10 @@ export default function ThemePreviewModal({
       <div className="flex items-center justify-between gap-3 bg-white px-4 py-3 shadow-md">
         <div className="flex items-center gap-2 text-sm">
           <span className="rounded-full bg-[#3a3227] px-3 py-1 text-xs font-medium text-white">
-            完成イメージ
+            Preview
           </span>
           <span className="text-[#6b6355]">
-            {THEME_LABELS[theme]}（サンプルの文章です）
+            {THEME_LABELS[theme]} (sample text)
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -50,15 +50,15 @@ export default function ThemePreviewModal({
             onClick={onSelect}
             className="rounded-lg bg-[#3a3227] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2a2419]"
           >
-            このデザインで作る
+            Use this design
           </button>
           <button
             type="button"
             onClick={onClose}
-            aria-label="閉じる"
+            aria-label="Close"
             className="rounded-lg border border-[#e2ddd1] px-3 py-2 text-sm text-[#3a3227] hover:bg-[#f7f5f0]"
           >
-            閉じる
+            Close
           </button>
         </div>
       </div>

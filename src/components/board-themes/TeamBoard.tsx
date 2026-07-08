@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, ui } from "@/lib/i18n";
 
 const BG = "#F5F4F0";
 const CARD = "#FFFFFF";
@@ -19,15 +20,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "HAPPY BIRTHDAY",
   retirement: "LEGEND FOREVER",
   other: "ONE TEAM, ONE HEART",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "結婚おめでとう！",
-  farewell: "今までありがとう！",
-  graduation: "卒団おめでとう！",
-  birthday: "誕生日おめでとう！",
-  retirement: "おつかれさまでした！",
-  other: "みんなの気持ちを込めて",
 };
 
 // 投稿の合間に挟む「ベタ塗り大文字タイル」の言葉（シーンごとに変わる）
@@ -89,7 +81,8 @@ export default function TeamBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
   const items = buildItems(posts, ACCENT_WORDS[board.occasion]);
 
@@ -119,7 +112,7 @@ export default function TeamBoard({
               className={`${zenKakuGothicNew.className} text-lg font-bold`}
               style={{ color: INK }}
             >
-              {jpSubtitle}
+              {subtitle}
             </p>
             {dateLabel && (
               <p
@@ -134,7 +127,7 @@ export default function TeamBoard({
 
         {!preview && (
           <div className="mb-14 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${zenKakuGothicNew.className} rounded-lg px-5 py-3 text-center text-sm font-bold tracking-widest transition-transform hover:scale-[1.02]`}
@@ -144,7 +137,7 @@ export default function TeamBoard({
                 boxShadow: `4px 4px 0 ${INK}`,
               }}
             >
-              メッセージを送る！
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -155,7 +148,7 @@ export default function TeamBoard({
             className={`${zenKakuGothicNew.className} font-bold`}
             style={{ color: INK, opacity: 0.6 }}
           >
-            まだメッセージがありません。最初の声援を送ろう！
+            {t.emptyBoard}
           </p>
         )}
 

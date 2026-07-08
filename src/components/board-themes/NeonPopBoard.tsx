@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, ui } from "@/lib/i18n";
 
 const BG = "#0D0B1E";
 const CARD = "#16132B";
@@ -18,15 +19,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "LEVEL UP!",
   retirement: "GAME COMPLETE!",
   other: "PRESS START",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "けっこんおめでとう",
-  farewell: "いままでありがとう",
-  graduation: "そつぎょうおめでとう",
-  birthday: "おたんじょうびおめでとう",
-  retirement: "おつかれさまでした",
-  other: "みんなからのメッセージ",
 };
 
 // 投稿の合間に挟むネオンサインの言葉（シーンごとに変わる）
@@ -86,7 +78,8 @@ export default function NeonPopBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
   const items = buildItems(posts, ACCENT_WORDS[board.occasion]);
 
@@ -110,7 +103,7 @@ export default function NeonPopBoard({
             className={`${zenKakuGothicNew.className} text-sm font-medium sm:text-base`}
             style={{ color: TEXT, opacity: 0.85, letterSpacing: "0.25em", textIndent: "0.25em" }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
           {dateLabel && (
             <p
@@ -124,13 +117,13 @@ export default function NeonPopBoard({
 
         {!preview && (
           <div className="mx-auto mb-14 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${dotGothic16.className} neon-card-pink rounded-lg px-5 py-3 text-center text-sm tracking-widest`}
               style={{ backgroundColor: CARD, color: TEXT }}
             >
-              メッセージをおくる
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -141,7 +134,7 @@ export default function NeonPopBoard({
             className={`${zenKakuGothicNew.className} text-center`}
             style={{ color: TEXT, opacity: 0.6 }}
           >
-            まだメッセージがありません。さいしょのコインを入れよう！
+            {t.emptyBoard}
           </p>
         )}
 

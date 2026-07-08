@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
+import type { Language } from "@/lib/types";
+import { ui } from "@/lib/i18n";
 
 function subscribe(callback: () => void) {
   const id = setInterval(callback, 1000);
@@ -26,9 +28,16 @@ function diffParts(ms: number) {
   };
 }
 
-export default function CountdownTimer({ revealAt }: { revealAt: string }) {
+export default function CountdownTimer({
+  revealAt,
+  language = "en",
+}: {
+  revealAt: string;
+  language?: Language;
+}) {
   const target = new Date(revealAt).getTime();
   const now = useNow();
+  const t = ui(language);
 
   useEffect(() => {
     if (now > 0 && now >= target) {
@@ -42,10 +51,10 @@ export default function CountdownTimer({ revealAt }: { revealAt: string }) {
 
   const { days, hours, minutes, seconds } = diffParts(target - now);
   const units = [
-    { label: "日", value: days },
-    { label: "時間", value: hours },
-    { label: "分", value: minutes },
-    { label: "秒", value: seconds },
+    { label: t.days, value: days },
+    { label: t.hours, value: hours },
+    { label: t.minutes, value: minutes },
+    { label: t.seconds, value: seconds },
   ];
 
   return (

@@ -481,7 +481,7 @@ export default function ThemePicker({
                   onClick={() => setPreviewTheme(theme)}
                   className="shrink-0 rounded-full border border-[#e2ddd1] px-2 py-0.5 text-[10px] text-[#6b6355] hover:bg-[#f7f5f0]"
                 >
-                  見本を見る
+                  Preview
                 </button>
               </div>
             </div>

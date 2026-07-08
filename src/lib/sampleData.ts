@@ -1,4 +1,4 @@
-import type { Board, Occasion, Post, Theme } from "./types";
+import type { Board, Language, Occasion, Post, Theme } from "./types";
 
 // テーマ選択画面の「完成イメージ」プレビューで使う、サンプルのボードと投稿。
 // 実際のボード表示コンポーネントにそのまま渡すので、見た目は本番と完全に同じ。
@@ -13,7 +13,11 @@ const SAMPLE_TITLES: Record<Occasion, string> = {
   other: "ありがとうを、かたちに",
 };
 
-export function sampleBoard(theme: Theme, occasion: Occasion = "wedding"): Board {
+export function sampleBoard(
+  theme: Theme,
+  occasion: Occasion = "wedding",
+  language: Language = "ja"
+): Board {
   return {
     id: "sample",
     slug: "sample",
@@ -25,6 +29,7 @@ export function sampleBoard(theme: Theme, occasion: Occasion = "wedding"): Board
     paid_tier: null,
     reveal_at: null,
     organizer_email: null,
+    language,
     created_at: new Date().toISOString(),
   };
 }

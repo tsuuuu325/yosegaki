@@ -6,6 +6,8 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, footerFor, ui } from "@/lib/i18n";
+import type { Language } from "@/lib/types";
 
 const BG = "#EFEBE3";
 const CARD = "#FAF8F2";
@@ -22,23 +24,10 @@ const EYEBROW: Record<Occasion, string> = {
   other: "WITH OUR WORDS",
 };
 
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "ご結婚 おめでとうございます",
-  farewell: "これまでの日々に 感謝を込めて",
-  graduation: "ご卒業 おめでとうございます",
-  birthday: "お誕生日 おめでとうございます",
-  retirement: "永年のお勤め おつかれさまでした",
-  other: "心ばかりの言葉を 添えて",
-};
-
-const FOOTER_LABEL: Record<Occasion, (n: number) => string> = {
-  wedding: (n) => `お祝いの言葉 ${n}名より`,
-  farewell: (n) => `感謝を込めて ${n}名より`,
-  graduation: (n) => `お祝いの言葉 ${n}名より`,
-  birthday: (n) => `お祝いの言葉 ${n}名より`,
-  retirement: (n) => `感謝を込めて ${n}名より`,
-  other: (n) => `${n}名より`,
-};
+// 縦書きが自然な言語（日本語・中国語・韓国語）だけ縦書きにする
+function isVerticalLang(lang: Language) {
+  return lang === "ja" || lang === "zh" || lang === "ko";
+}
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -80,7 +69,9 @@ export default function JapandiBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
+  const vertical = isVerticalLang(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -107,7 +98,7 @@ export default function JapandiBoard({
             className={`${shipporiMincho.className} text-sm sm:text-base`}
             style={{ color: INK, opacity: 0.75, letterSpacing: "0.3em", textIndent: "0.3em" }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
           {dateLabel && (
             <p
@@ -122,13 +113,13 @@ export default function JapandiBoard({
 
         {!preview && (
           <div className="mx-auto mb-16 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${shipporiMincho.className} px-5 py-3 text-center text-sm tracking-[0.3em] transition-opacity hover:opacity-85`}
               style={{ backgroundColor: INK, color: CARD }}
             >
-              言葉を贈る
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -139,14 +130,14 @@ export default function JapandiBoard({
             className={`${shipporiMincho.className} text-center`}
             style={{ color: INK, opacity: 0.6 }}
           >
-            まだ言葉が届いておりません。最初の一筆をお寄せください。
+            {t.emptyBoard}
           </p>
         )}
 
-        {/* 縦書きの短冊が右から左へ並ぶ */}
+        {/* 短冊が並ぶ（CJKは右から左の縦書き、それ以外は通常の横並び） */}
         <div
           className="flex flex-wrap items-start justify-center gap-4 sm:gap-6"
-          style={{ direction: "rtl" }}
+          style={vertical ? { direction: "rtl" } : undefined}
         >
           {posts.map((post, i) => (
             <FadeIn
@@ -155,7 +146,9 @@ export default function JapandiBoard({
               variant="ink-slide"
             >
               <article
-                className="flex flex-col items-center gap-3 px-1 py-6"
+                className={`flex flex-col gap-3 py-6 ${
+                  vertical ? "items-center px-1" : "w-64 items-stretch px-5"
+                }`}
                 style={{
                   backgroundColor: CARD,
                   border: `1px solid ${RULE}`,
@@ -167,42 +160,64 @@ export default function JapandiBoard({
                   <PostMedia
                     url={post.image_url}
                     alt={`${post.author_name}の投稿`}
-                    className="w-28 object-cover sm:w-32"
+                    className={vertical ? "w-28 object-cover sm:w-32" : "w-full object-cover"}
                     style={{ border: `1px solid ${RULE}` }}
                   />
                 )}
-                <div
-                  className="flex items-start"
-                  style={{ direction: "rtl", minHeight: "200px" }}
-                >
+                {vertical ? (
                   <div
-                    className={shipporiMincho.className}
-                    style={{
-                      writingMode: "vertical-rl",
-                      color: INK,
-                      fontSize: "14px",
-                      lineHeight: 2.1,
-                      letterSpacing: "0.12em",
-                      padding: "0 10px",
-                    }}
+                    className="flex items-start"
+                    style={{ direction: "rtl", minHeight: "200px" }}
                   >
-                    <p style={{ whiteSpace: "pre-wrap" }}>{post.message}</p>
+                    <div
+                      className={shipporiMincho.className}
+                      style={{
+                        writingMode: "vertical-rl",
+                        color: INK,
+                        fontSize: "14px",
+                        lineHeight: 2.1,
+                        letterSpacing: "0.12em",
+                        padding: "0 10px",
+                      }}
+                    >
+                      <p style={{ whiteSpace: "pre-wrap" }}>{post.message}</p>
+                    </div>
+                    <div
+                      className={shipporiMincho.className}
+                      style={{
+                        writingMode: "vertical-rl",
+                        color: INK,
+                        opacity: 0.8,
+                        fontSize: "13px",
+                        letterSpacing: "0.12em",
+                        padding: "0 6px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {post.author_name}
+                    </div>
                   </div>
-                  <div
-                    className={shipporiMincho.className}
-                    style={{
-                      writingMode: "vertical-rl",
-                      color: INK,
-                      opacity: 0.8,
-                      fontSize: "13px",
-                      letterSpacing: "0.12em",
-                      padding: "0 6px",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {post.author_name}
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <p
+                      className={shipporiMincho.className}
+                      style={{
+                        color: INK,
+                        fontSize: "15px",
+                        lineHeight: 1.9,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {post.message}
+                    </p>
+                    <p
+                      className={shipporiMincho.className}
+                      style={{ color: INK, opacity: 0.8, fontSize: "14px", textAlign: "right" }}
+                    >
+                      — {post.author_name}
+                    </p>
                   </div>
-                </div>
+                )}
                 <Seal char={post.author_name.trim().charAt(0) || "印"} size={24} />
               </article>
             </FadeIn>
@@ -222,7 +237,7 @@ export default function JapandiBoard({
                 fontSize: "14px",
               }}
             >
-              {FOOTER_LABEL[board.occasion](posts.length)}
+              {footerFor(board.language, board.occasion, posts.length)}
             </p>
           </footer>
         )}

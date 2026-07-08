@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, footerFor, ui } from "@/lib/i18n";
 
 const EYEBROW: Record<Occasion, string> = {
   wedding: "WITH ALL OUR LOVE",
@@ -14,25 +15,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "CELEBRATING YOU",
   retirement: "WITH DEEP GRATITUDE",
   other: "TOGETHER WITH LOVE",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "結婚おめでとう",
-  farewell: "今までありがとう",
-  graduation: "卒業おめでとう",
-  birthday: "お誕生日おめでとう",
-  retirement: "長年ありがとうございました",
-  other: "おめでとうございます",
-};
-
-// 一番下のフッターの言葉（シーンごとに変わる）
-const FOOTER_LABEL: Record<Occasion, (n: number) => string> = {
-  wedding: (n) => `${n}人からの祝福`,
-  farewell: (n) => `${n}人からの感謝`,
-  graduation: (n) => `${n}人からの祝福`,
-  birthday: (n) => `${n}人からの祝福`,
-  retirement: (n) => `${n}人からの感謝`,
-  other: (n) => `${n}人からの想い`,
 };
 
 const titleFontFamily = `${cormorantGaramond.style.fontFamily}, ${shipporiMincho.style.fontFamily}`;
@@ -71,7 +53,8 @@ export default function WeddingBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -94,7 +77,7 @@ export default function WeddingBoard({
             className={`${shipporiMincho.className} text-base sm:text-lg`}
             style={{ color: "#38332B", letterSpacing: "0.5em", textIndent: "0.5em" }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
 
           <div className="mt-5 flex items-center gap-3">
@@ -115,13 +98,13 @@ export default function WeddingBoard({
 
         {!preview && (
           <div className="mx-auto mb-20 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${shipporiMincho.className} rounded px-5 py-3 text-center text-sm tracking-widest transition-colors`}
               style={{ backgroundColor: "#38332B", color: "#FAF6EE" }}
             >
-              メッセージを贈る
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -132,7 +115,7 @@ export default function WeddingBoard({
             className={`${shipporiMincho.className} text-center opacity-70`}
             style={{ color: "#38332B" }}
           >
-            まだメッセージが届いておりません。最初の一言をお寄せください。
+            {t.emptyBoard}
           </p>
         )}
 
@@ -191,7 +174,7 @@ export default function WeddingBoard({
               className={shipporiMincho.className}
               style={{ color: "#A9885A", letterSpacing: "0.3em", textIndent: "0.3em" }}
             >
-              {FOOTER_LABEL[board.occasion](posts.length)}
+              {footerFor(board.language, board.occasion, posts.length)}
             </p>
           </footer>
         )}

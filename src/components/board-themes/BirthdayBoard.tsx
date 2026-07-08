@@ -6,6 +6,7 @@ import type { Board, Occasion, Post } from "@/lib/types";
 import ShareLink from "@/components/ShareLink";
 import FadeIn from "@/components/FadeIn";
 import PostMedia from "@/components/PostMedia";
+import { subtitleFor, footerFor, ui } from "@/lib/i18n";
 
 const BG = "#FFF8EC";
 const CARD = "#FFFFFF";
@@ -20,24 +21,6 @@ const EYEBROW: Record<Occasion, string> = {
   birthday: "Happy Birthday!",
   retirement: "Happy Retirement!",
   other: "For You!",
-};
-
-const JP_SUBTITLE: Record<Occasion, string> = {
-  wedding: "けっこん おめでとう！",
-  farewell: "いままで ありがとう！",
-  graduation: "そつぎょう おめでとう！",
-  birthday: "おたんじょうび おめでとう！",
-  retirement: "おつかれさまでした！",
-  other: "きもちを こめて",
-};
-
-const FOOTER_LABEL: Record<Occasion, (n: number) => string> = {
-  wedding: (n) => `${n}人から、おめでとう！`,
-  farewell: (n) => `${n}人から、ありがとう！`,
-  graduation: (n) => `${n}人から、おめでとう！`,
-  birthday: (n) => `${n}人から、おめでとう！`,
-  retirement: (n) => `${n}人から、ありがとう！`,
-  other: (n) => `${n}人のきもちです`,
 };
 
 // 散らばり感を出すための傾き（index順に繰り返す疑似ランダム）
@@ -110,7 +93,8 @@ export default function BirthdayBoard({
   preview?: boolean;
 }) {
   const eyebrow = EYEBROW[board.occasion];
-  const jpSubtitle = JP_SUBTITLE[board.occasion];
+  const subtitle = subtitleFor(board.language, board.occasion);
+  const t = ui(board.language);
   const dateLabel = formatDate(board.event_date);
 
   return (
@@ -134,7 +118,7 @@ export default function BirthdayBoard({
             className={`${zenMaruGothic.className} text-base font-medium sm:text-lg`}
             style={{ color: INK, letterSpacing: "0.2em", textIndent: "0.2em", opacity: 0.85 }}
           >
-            {jpSubtitle}
+            {subtitle}
           </p>
           {/* 手描きの波線 */}
           <svg width="140" height="12" viewBox="0 0 140 12" aria-hidden className="mt-1">
@@ -155,13 +139,13 @@ export default function BirthdayBoard({
 
         {!preview && (
           <div className="mx-auto mb-14 flex max-w-md flex-col gap-4">
-            <ShareLink slug={board.slug} theme={board.theme} />
+            <ShareLink slug={board.slug} theme={board.theme} language={board.language} />
             <Link
               href={`/board/${board.slug}/post`}
               className={`${zenMaruGothic.className} rounded-full px-5 py-3 text-center text-sm font-bold tracking-widest text-white transition-transform hover:scale-[1.02]`}
               style={{ backgroundColor: PINK, boxShadow: "0 4px 14px rgba(240,98,146,0.35)" }}
             >
-              メッセージをおくる
+              {t.giveMessage}
             </Link>
           </div>
         )}
@@ -172,7 +156,7 @@ export default function BirthdayBoard({
             className={`${zenMaruGothic.className} text-center font-medium`}
             style={{ color: INK, opacity: 0.6 }}
           >
-            まだメッセージがありません。さいしょのひとことを届けよう！
+            {t.emptyBoard}
           </p>
         )}
 
@@ -235,7 +219,7 @@ export default function BirthdayBoard({
                 boxShadow: "0 4px 14px rgba(74,63,60,0.12)",
               }}
             >
-              🎉 {FOOTER_LABEL[board.occasion](posts.length)}
+              🎉 {footerFor(board.language, board.occasion, posts.length)}
             </p>
           </footer>
         )}

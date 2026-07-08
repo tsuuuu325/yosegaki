@@ -212,6 +212,7 @@ export default function Home() {
             <ThemePicker
               value={theme}
               occasion={occasion}
+              language={language}
               onChange={(t: Theme) => setTheme(t)}
             />
           </div>

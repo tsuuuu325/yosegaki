@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { THEME_LABELS, THEME_ORDER, type Occasion, type Theme } from "@/lib/types";
+import { THEME_LABELS, THEME_ORDER, type Language, type Occasion, type Theme } from "@/lib/types";
+import { subtitleFor } from "@/lib/i18n";
 import {
   cormorantGaramond,
   shipporiMincho,
@@ -16,7 +17,7 @@ import {
 } from "@/lib/fonts";
 import ThemePreviewModal from "@/components/ThemePreviewModal";
 
-function WeddingMiniPreview() {
+function WeddingMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col items-center justify-center gap-1.5 px-3 py-3"
@@ -38,7 +39,7 @@ function WeddingMiniPreview() {
         className={shipporiMincho.className}
         style={{ color: "#38332B", fontSize: "8px", letterSpacing: "0.3em" }}
       >
-        結婚おめでとう
+        {subtitle}
       </span>
       <div className="mt-1.5 flex w-full gap-1.5">
         <div
@@ -69,7 +70,7 @@ function WeddingMiniPreview() {
   );
 }
 
-function FarewellMiniPreview() {
+function FarewellMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col items-center justify-center gap-1 px-3 py-3"
@@ -91,7 +92,7 @@ function FarewellMiniPreview() {
         className={shipporiMincho.className}
         style={{ color: "#F3ECDD", fontSize: "7px", letterSpacing: "0.3em", opacity: 0.9 }}
       >
-        これまで ありがとう
+        {subtitle}
       </span>
       <div
         className="mt-1.5 w-4/5 rounded-sm px-2 py-1.5"
@@ -111,7 +112,7 @@ function FarewellMiniPreview() {
   );
 }
 
-function TeamMiniPreview() {
+function TeamMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col justify-center gap-1 px-3 py-3"
@@ -127,7 +128,7 @@ function TeamMiniPreview() {
         className={`${zenKakuGothicNew.className} font-black`}
         style={{ color: "#16181D", fontSize: "15px", lineHeight: 1.1 }}
       >
-        卒団おめでとう！
+        {subtitle}
       </span>
       <div className="flex h-1.5 w-3/5">
         <span className="h-full flex-1" style={{ backgroundColor: "#16181D" }} />
@@ -178,7 +179,7 @@ function TeamMiniPreview() {
   );
 }
 
-function BirthdayMiniPreview() {
+function BirthdayMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col items-center justify-center gap-0.5 px-3 py-3"
@@ -191,7 +192,7 @@ function BirthdayMiniPreview() {
         className={`${zenMaruGothic.className} font-bold`}
         style={{ color: "#4A3F3C", fontSize: "11px" }}
       >
-        おたんじょうび おめでとう！
+        {subtitle}
       </span>
       <div className="mt-2 flex w-full justify-center gap-2">
         {[
@@ -231,7 +232,7 @@ function BirthdayMiniPreview() {
   );
 }
 
-function JapandiMiniPreview() {
+function JapandiMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col items-center justify-center gap-1.5 px-3 py-3"
@@ -247,7 +248,7 @@ function JapandiMiniPreview() {
         className={shipporiMincho.className}
         style={{ color: "#26231E", fontSize: "13px", letterSpacing: "0.2em" }}
       >
-        感謝を込めて
+        {subtitle}
       </span>
       <div className="mt-1 flex justify-center gap-1.5" style={{ direction: "rtl" }}>
         {["あ", "り", "が"].map((c, i) => (
@@ -288,7 +289,7 @@ function JapandiMiniPreview() {
   );
 }
 
-function NeonPopMiniPreview() {
+function NeonPopMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col items-center justify-center gap-1 px-3 py-3"
@@ -301,7 +302,7 @@ function NeonPopMiniPreview() {
         LEVEL UP!
       </span>
       <span className={`${dotGothic16.className} neon-text-pink`} style={{ fontSize: "16px" }}>
-        おめでとう
+        {subtitle}
       </span>
       <div className="mt-1.5 flex w-full gap-1.5">
         <div
@@ -324,7 +325,7 @@ function NeonPopMiniPreview() {
   );
 }
 
-function BotanicalMiniPreview() {
+function BotanicalMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="relative flex h-32 flex-col items-center justify-center gap-1 px-3 py-3"
@@ -340,7 +341,7 @@ function BotanicalMiniPreview() {
         className={`${kleeOne.className} font-semibold`}
         style={{ color: "#3B4A3A", fontSize: "13px" }}
       >
-        感謝のことば
+        {subtitle}
       </span>
       <div className="relative mt-1 w-full">
         <span
@@ -372,7 +373,7 @@ function BotanicalMiniPreview() {
   );
 }
 
-function ClassicMonoMiniPreview() {
+function ClassicMonoMiniPreview({ subtitle }: { subtitle: string }) {
   return (
     <div
       className="flex h-32 flex-col justify-center gap-1 px-3 py-3"
@@ -397,7 +398,7 @@ function ClassicMonoMiniPreview() {
           className={shipporiMincho.className}
           style={{ color: "#111111", fontSize: "7px", letterSpacing: "0.3em" }}
         >
-          祝 ご退職
+          {subtitle}
         </span>
       </div>
       <div className="h-px w-full" style={{ backgroundColor: "#111111" }} />
@@ -426,13 +427,16 @@ function ClassicMonoMiniPreview() {
 export default function ThemePicker({
   value,
   occasion = "wedding",
+  language = "en",
   onChange,
 }: {
   value: Theme;
   occasion?: Occasion;
+  language?: Language;
   onChange: (theme: Theme) => void;
 }) {
   const [previewTheme, setPreviewTheme] = useState<Theme | null>(null);
+  const subtitle = subtitleFor(language, occasion);
 
   return (
     <>
@@ -455,21 +459,21 @@ export default function ThemePicker({
                 className="block w-full text-left"
               >
                 {theme === "wedding" ? (
-                  <WeddingMiniPreview />
+                  <WeddingMiniPreview subtitle={subtitle} />
                 ) : theme === "farewell" ? (
-                  <FarewellMiniPreview />
+                  <FarewellMiniPreview subtitle={subtitle} />
                 ) : theme === "team" ? (
-                  <TeamMiniPreview />
+                  <TeamMiniPreview subtitle={subtitle} />
                 ) : theme === "birthday" ? (
-                  <BirthdayMiniPreview />
+                  <BirthdayMiniPreview subtitle={subtitle} />
                 ) : theme === "japandi" ? (
-                  <JapandiMiniPreview />
+                  <JapandiMiniPreview subtitle={subtitle} />
                 ) : theme === "popNeon" ? (
-                  <NeonPopMiniPreview />
+                  <NeonPopMiniPreview subtitle={subtitle} />
                 ) : theme === "naturalBotanical" ? (
-                  <BotanicalMiniPreview />
+                  <BotanicalMiniPreview subtitle={subtitle} />
                 ) : (
-                  <ClassicMonoMiniPreview />
+                  <ClassicMonoMiniPreview subtitle={subtitle} />
                 )}
               </button>
               <div className="flex items-center justify-between gap-1 bg-white px-2 py-1.5">
@@ -493,6 +497,7 @@ export default function ThemePicker({
         <ThemePreviewModal
           theme={previewTheme}
           occasion={occasion}
+          language={language}
           onClose={() => setPreviewTheme(null)}
           onSelect={() => {
             onChange(previewTheme);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { Occasion, Theme } from "@/lib/types";
+import type { Language, Occasion, Theme } from "@/lib/types";
 import { THEME_LABELS } from "@/lib/types";
 import { sampleBoard, samplePosts } from "@/lib/sampleData";
 import ThemedBoard from "@/components/board-themes/ThemedBoard";
@@ -9,11 +9,13 @@ import ThemedBoard from "@/components/board-themes/ThemedBoard";
 export default function ThemePreviewModal({
   theme,
   occasion = "wedding",
+  language = "en",
   onClose,
   onSelect,
 }: {
   theme: Theme;
   occasion?: Occasion;
+  language?: Language;
   onClose: () => void;
   onSelect: () => void;
 }) {
@@ -29,8 +31,8 @@ export default function ThemePreviewModal({
     };
   }, [onClose]);
 
-  const board = sampleBoard(theme, occasion);
-  const posts = samplePosts();
+  const board = sampleBoard(theme, occasion, language);
+  const posts = samplePosts(language);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm">

@@ -24,6 +24,7 @@ export function sampleBoard(theme: Theme, occasion: Occasion = "wedding"): Board
     is_paid: false,
     paid_tier: null,
     reveal_at: null,
+    organizer_email: null,
     created_at: new Date().toISOString(),
   };
 }

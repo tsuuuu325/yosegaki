@@ -60,6 +60,7 @@ export type Board = {
   is_paid: boolean;
   paid_tier: PaidTier | null;
   reveal_at: string | null;
+  organizer_email: string | null;
   created_at: string;
 };
 

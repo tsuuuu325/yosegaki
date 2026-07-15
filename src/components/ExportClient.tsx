@@ -78,7 +78,10 @@ export default function ExportClient({
     setBusy("html");
     setError("");
     try {
-      const html = await buildStandaloneHtml(node, board.title);
+      const html = await buildStandaloneHtml(node, board.title, {
+        revealAt: board.reveal_at,
+        language: board.language,
+      });
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
